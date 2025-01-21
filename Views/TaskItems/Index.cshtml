@@ -1,0 +1,33 @@
+﻿@model dynamic
+
+<h1>Tasks</h1>
+
+<div>
+    <button onclick="filterTasks('TODO')">TODO</button>
+    <button onclick="filterTasks('Current')">Current</button>
+    <button onclick="filterTasks('Done')">Done</button>
+</div>
+
+<div class="task-columns">
+    <div>
+        <h2>TODO</h2>
+        @foreach (var task in Model.Todo)
+        {
+            <p>@task.Name</p>
+        }
+    </div>
+    <div>
+        <h2>Current</h2>
+        @foreach (var task in Model.Current)
+        {
+            <p>@task.Name</p>
+        }
+    </div>
+    <div>
+        <h2>Done</h2>
+        @foreach (var task in Model.Done)
+        {
+            <p>@task.Name</p>
+        }
+    </div>
+</div>
