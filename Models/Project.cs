@@ -16,11 +16,6 @@ namespace TaskManager.Models
 
         public ICollection<TaskItem> TaskItems { get; set; }
 
-        [ForeignKey("OrganizationId")]
-        public int? OrganizationId { get; set; }
-
-        public Organization Organization { get; set; }
-
         [ForeignKey("OwnerId")]
         public string OwnerId { get; set; }
 

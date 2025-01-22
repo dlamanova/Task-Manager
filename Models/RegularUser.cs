@@ -1,10 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.Collections.Generic;
 
 namespace TaskManager.Models
 {
     public class RegularUser : User
     {
-        [ForeignKey("OrganizationId")]
-        public Organization Organization { get; set; }
+        // Tasks collection is inherited from User; no need to redefine here.
     }
 }

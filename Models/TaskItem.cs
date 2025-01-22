@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TaskManager.Models
 {
@@ -16,10 +17,16 @@ namespace TaskManager.Models
         [Required]
         public DateTime Deadline { get; set; }
 
+        [ForeignKey("AssignedUserId")]
         public User AssignedUser { get; set; }
+        public string AssignedUserId { get; set; }
 
+        [ForeignKey("CategoryId")]
         public Category Category { get; set; }
+        public int CategoryId { get; set; }
 
-        public ICollection<Comment> Comments { get; set; }
+        [ForeignKey("StatusId")]
+        public Status Status { get; set; }
+        public int StatusId { get; set; }
     }
 }

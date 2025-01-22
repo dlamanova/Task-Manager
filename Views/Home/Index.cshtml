@@ -1,8 +1,144 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
-}
+﻿@* @{ *@
+@*     ViewData["Title"] = "Welcome"; *@
+@*     Layout = null; // Wyłączenie wspólnego layoutu *@
+@* } *@
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+@* <!DOCTYPE html> *@
+@* <html lang="en"> *@
+@* <head> *@
+@*     <meta charset="utf-8" /> *@
+@*     <meta name="viewport" content="width=device-width, initial-scale=1.0" /> *@
+@*     <title>@ViewData["Title"] - Task Manager</title> *@
+@*     <style> *@
+@*         /* Stylowanie tła */ *@
+@*         body { *@
+@*             font-family: Arial, sans-serif; *@
+@*             background-color: #a3d5c3; /* Kolor tła */ *@
+@*             margin: 0; *@
+@*             display: flex; *@
+@*             justify-content: center; *@
+@*             align-items: center; *@
+@*             height: 100vh; *@
+@*         } *@
+
+@*         /* Główne pojemnik */ *@
+@*         .login-container { *@
+@*             text-align: center; *@
+@*             color: #333; *@
+@*         } *@
+
+@*         /* Stylowanie formularza logowania */ *@
+@*         .login-box { *@
+@*             background-color: #dcebe9; /* Kolor tła formularza */ *@
+@*             border-radius: 10px; *@
+@*             padding: 20px 30px; *@
+@*             width: 300px; *@
+@*             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); *@
+@*         } *@
+
+@*         /* Przełącznik roli */ *@
+@*         .role-switch { *@
+@*             display: flex; *@
+@*             justify-content: center; *@
+@*             margin-bottom: 15px; *@
+@*         } *@
+
+@*         .role-btn { *@
+@*             background-color: #83c2af; /* Kolor przycisku */ *@
+@*             border: none; *@
+@*             padding: 10px 20px; *@
+@*             color: white; *@
+@*             font-weight: bold; *@
+@*             cursor: pointer; *@
+@*             transition: background-color 0.3s, transform 0.2s; *@
+@*             border-radius: 5px; *@
+@*         } *@
+
+@*             .role-btn:hover { *@
+@*                 background-color: #5aa899; /* Ciemniejszy kolor przy najechaniu */ *@
+@*                 transform: scale(1.05); /* Powiększenie przycisku */ *@
+@*             } *@
+
+@*             .role-btn:active { *@
+@*                 background-color: #46917a; /* Kolor podczas kliknięcia */ *@
+@*                 transform: scale(0.95); /* Zmniejszenie przycisku */ *@
+@*             } *@
+
+@*             .role-btn.active { *@
+@*                 background-color: #46917a; /* Kolor wybranej opcji */ *@
+@*             } *@
+
+@*         /* Pola wejściowe */ *@
+@*         .input-field { *@
+@*             display: block; *@
+@*             width: 100%; *@
+@*             margin: 10px 0; *@
+@*             padding: 10px; *@
+@*             border: 1px solid #83c2af; /* Kolor obramowania */ *@
+@*             border-radius: 5px; *@
+@*             box-sizing: border-box; *@
+@*         } *@
+
+@*         /* Przyciski logowania */ *@
+@*         .login-btn { *@
+@*             background-color: #83c2af; /* Kolor przycisku logowania */ *@
+@*             color: white; *@
+@*             padding: 10px; *@
+@*             border: none; *@
+@*             width: 100%; *@
+@*             border-radius: 5px; *@
+@*             font-weight: bold; *@
+@*             cursor: pointer; *@
+@*             transition: background-color 0.3s; *@
+@*             margin-top: 10px; *@
+@*         } *@
+
+@*             .login-btn:hover { *@
+@*                 background-color: #5aa899; *@
+@*             } *@
+
+@*         /* Linki rejestracji */ *@
+@*         .register-link { *@
+@*             color: #5aa899; /* Kolor linku rejestracji */ *@
+@*             text-decoration: none; *@
+@*             font-weight: bold; *@
+@*         } *@
+
+@*             .register-link:hover { *@
+@*                 text-decoration: underline; *@
+@*             } *@
+@*     </style> *@
+@*     <script> *@
+@*         function setRole(role, button) { *@
+@*             // Ustaw wartość roli w ukrytym polu formularza *@
+@*             document.getElementById('roleInput').value = role; *@
+
+@*             // Usuń klasę active ze wszystkich przycisków *@
+@*             const buttons = document.querySelectorAll('.role-btn'); *@
+@*             buttons.forEach(btn => btn.classList.remove('active')); *@
+
+@*             // Dodaj klasę active do klikniętego przycisku *@
+@*             button.classList.add('active'); *@
+@*         } *@
+@*     </script> *@
+@* </head> *@
+@* <body> *@
+@*     <div class="login-container"> *@
+@*         <h1>WELCOME TO TASK MANAGER</h1> *@
+@*         <div class="login-box"> *@
+@*             <div class="role-switch"> *@
+@*                 <button type="button" class="role-btn active" onclick="setRole('User', this)">User</button> *@
+@*                 <button type="button" class="role-btn" onclick="setRole('Admin', this)">Admin</button> *@
+@*             </div> *@
+@*             <form asp-action="Login" asp-controller="Account" method="post"> *@
+@*                 <input type="hidden" id="roleInput" name="Role" value="User" /> *@
+@*                 <input type="text" class="input-field" placeholder="Username" name="Username" required /> *@
+@*                 <input type="password" class="input-field" placeholder="Password" name="Password" required /> *@
+@*                 <button type="submit" class="login-btn">Login</button> *@
+@*             </form> *@
+@*             <p>Do not have an account?</p> *@
+@*             <a asp-action="Register" asp-controller="Account" class="register-link">Register</a> *@
+@*         </div> *@
+@*     </div> *@
+@* </body> *@
+@* </html> *@

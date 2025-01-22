@@ -3,81 +3,142 @@
 
 @{
     ViewData["Title"] = "Log in";
+    Layout = null; // Wyłączenie wspólnego layoutu
 }
 
-<h1>@ViewData["Title"]</h1>
-<div class="row">
-    <div class="col-md-4">
-        <section>
-            <form id="account" method="post">
-                <h2>Use a local account to log in.</h2>
-                <hr />
-                <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-                <div class="form-floating mb-3">
-                    <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                    <label asp-for="Input.Email" class="form-label">Email</label>
-                    <span asp-validation-for="Input.Email" class="text-danger"></span>
-                </div>
-                <div class="form-floating mb-3">
-                    <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
-                    <label asp-for="Input.Password" class="form-label">Password</label>
-                    <span asp-validation-for="Input.Password" class="text-danger"></span>
-                </div>
-                <div class="checkbox mb-3">
-                    <label asp-for="Input.RememberMe" class="form-label">
-                        <input class="form-check-input" asp-for="Input.RememberMe" />
-                        @Html.DisplayNameFor(m => m.Input.RememberMe)
-                    </label>
-                </div>
-                <div>
-                    <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
-                </div>
-                <div>
-                    <p>
-                        <a id="forgot-password" asp-page="./ForgotPassword">Forgot your password?</a>
-                    </p>
-                    <p>
-                        <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Register as a new user</a>
-                    </p>
-                    <p>
-                        <a id="resend-confirmation" asp-page="./ResendEmailConfirmation">Resend email confirmation</a>
-                    </p>
-                </div>
-            </form>
-        </section>
-    </div>
-    <div class="col-md-6 col-md-offset-2">
-        <section>
-            <h3>Use another service to log in.</h3>
-            <hr />
-            @{
-                if ((Model.ExternalLogins?.Count ?? 0) == 0)
-                {
-                    <div>
-                        <p>
-                            There are no external authentication services configured. See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">article
-                            about setting up this ASP.NET application to support logging in via external services</a>.
-                        </p>
-                    </div>
-                }
-                else
-                {
-                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
-                        <div>
-                            <p>
-                                @foreach (var provider in Model.ExternalLogins!)
-                                {
-                                    <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
-                                }
-                            </p>
-                        </div>
-                    </form>
-                }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Task Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #a3d5c3; /* Kolor tła */
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-container {
+            text-align: center;
+            color: #333;
+        }
+
+        .login-box {
+            background-color: #dcebe9; /* Kolor tła formularza */
+            border-radius: 10px;
+            padding: 20px 30px;
+            width: 400px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .role-switch {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .role-btn {
+            background-color: #83c2af; /* Kolor przycisku */
+            border: none;
+            padding: 10px 20px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            border-radius: 5px;
+        }
+
+            .role-btn:hover {
+                background-color: #5aa899; /* Ciemniejszy kolor przy najechaniu */
+                transform: scale(1.05); /* Powiększenie przycisku */
             }
-        </section>
-    </div>
-</div>
 
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
+            .role-btn:active {
+                background-color: #46917a; /* Kolor podczas kliknięcia */
+                transform: scale(0.95); /* Zmniejszenie przycisku */
+            }
+
+            .role-btn.active {
+                background-color: #46917a; /* Kolor wybranej opcji */
+            }
+
+        .input-field {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #83c2af; /* Kolor obramowania */
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .login-btn {
+            background-color: #83c2af; /* Kolor przycisku logowania */
+            color: white;
+            padding: 10px;
+            border: none;
+            width: 100%;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+
+            .login-btn:hover {
+                background-color: #5aa899;
+            }
+
+        .text-danger {
+            color: red;
+        }
+    </style>
+    <script>
+        function setRole(role, button) {
+            // Ustaw wartość roli w ukrytym polu formularza
+            document.getElementById('roleInput').value = role;
+
+            // Usuń klasę active ze wszystkich przycisków
+            const buttons = document.querySelectorAll('.role-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            // Dodaj klasę active do klikniętego przycisku
+            button.classList.add('active');
+        }
+    </script>
+</head>
+<body>
+    <div class="login-container">
+        <h1>WELCOME TO TASK MANAGER</h1>
+        <div class="login-box">
+            <div class="role-switch">
+                <button type="button" class="role-btn active" onclick="setRole('User', this)">User</button>
+                <button type="button" class="role-btn" onclick="setRole('Admin', this)">Admin</button>
+            </div>
+            <form id="account" method="post">
+                <input type="hidden" id="roleInput" name="Role" value="User" />
+                <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+                <input asp-for="Input.Email" class="input-field" autocomplete="username" placeholder="Email" required />
+                <span asp-validation-for="Input.Email" class="text-danger"></span>
+                <input asp-for="Input.Password" class="input-field" autocomplete="current-password" placeholder="Password" required />
+                <span asp-validation-for="Input.Password" class="text-danger"></span>
+                <button type="submit" class="login-btn">Login</button>
+            </form>
+            <p>
+                <a asp-page="./ForgotPassword">Forgot your password?</a>
+            </p>
+            <p>
+                <a asp-page="./Register">Do not have an account? Register</a>
+            </p>
+        </div>
+    </div>
+    @section Scripts {
+        <partial name="_ValidationScriptsPartial" />
+    }
+</body>
+</html>

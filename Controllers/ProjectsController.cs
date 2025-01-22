@@ -16,7 +16,7 @@ namespace TaskManager.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var projects = await _context.Projects.Include(p => p.Organization).ToListAsync();
+            var projects = await _context.Projects.ToListAsync();
             return View(projects);
         }
 
