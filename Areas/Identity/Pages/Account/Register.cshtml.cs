@@ -110,17 +110,9 @@ namespace TaskManager.Areas.Identity.Pages.Account
                     // Dodanie roli użytkownika
                     await _userManager.AddToRoleAsync(user, Input.Role);
 
-                    // Logowanie użytkownika po rejestracji
-                    if (!_userManager.Options.SignIn.RequireConfirmedAccount)
-                    {
-                        await _signInManager.SignInAsync(user, isPersistent: false);
-                        return RedirectToDashboard(Input.Role);
-                    }
-                    else
-                    {
-                        // Jeśli wymagana jest weryfikacja e-mail
-                        return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl });
-                    }
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    return RedirectToDashboard(Input.Role);
+ 
                 }
 
                 foreach (var error in result.Errors)
@@ -130,8 +122,7 @@ namespace TaskManager.Areas.Identity.Pages.Account
             }
 
             // Jeśli walidacja nie powiodła się, pozostajemy na stronie
-            //return Page();
-            return RedirectToDashboard(Input.Role);
+            return Page();
         }
 
         private IActionResult RedirectToDashboard(string role)

@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@model TaskManager.Models.UserDashboardViewModel
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -40,158 +42,506 @@
             cursor: grab;
         }
 
-        .filter-buttons {
-            text-align: center;
-            margin-bottom: 20px;
+        button#create-task-btn {
+            margin-bottom: 10px;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #83c2af;
+            color: white;
+            cursor: pointer;
         }
 
-            .filter-buttons button {
-                background-color: #d9f0e7;
-                border: 1px solid #a8d5c1;
+            button#create-task-btn:hover {
+                background-color: #5aa899;
+            }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            width: 50%;
+            max-width: 400px;
+            margin: 100px auto;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+            .modal-content form label {
+                display: block;
+                margin-top: 10px;
+            }
+
+            .modal-content form input,
+            .modal-content form textarea,
+            .modal-content form select {
+                width: 100%;
+                padding: 10px;
+                margin-top: 5px;
+                margin-bottom: 10px;
+                border: 1px solid #ddd;
                 border-radius: 5px;
+            }
+
+            .modal-content form button {
                 padding: 5px 10px;
-                margin: 0 5px;
+                border: none;
+                border-radius: 5px;
                 cursor: pointer;
             }
 
-                .filter-buttons button.active {
-                    background-color: #a8d5c1;
+                .modal-content form button[type="submit"] {
+                    background-color: #83c2af;
+                    color: white;
                 }
+
+                    .modal-content form button[type="submit"]:hover {
+                        background-color: #5aa899;
+                    }
+
+                .modal-content form button#cancel-btn {
+                    background-color: #f5f5f5;
+                    margin-left: 10px;
+                }
+
+                    .modal-content form button#cancel-btn:hover {
+                        background-color: #e0e0e0;
+                    }
+
+        /* Align Logout to Top Right */
+        #logout-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #333;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+            #logout-button:hover {
+                text-decoration: underline;
+            }
+
+        .task-menu-button {
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        .task-menu div {
+            font-size: 0.9em;
+            color: #333;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+            .task-menu div:hover {
+                background-color: #f5f5f5;
+            }
     </style>
 </head>
 <body>
-    <!-- Przyciski filtrowania kategorii -->
-    <div class="filter-buttons">
-        <button data-category="all" class="active">All</button>
-        <button data-category="home">Home</button>
-        <button data-category="work">Work</button>
-        <button data-category="school">School</button>
-    </div>
-    <!-- Tablica zadań -->
+    <!-- Align Logout Link -->
+    @* <a href="/Account/Logout" id="logout-button">Logout</a> *@
+
     <div class="task-board">
+        <!-- TODO Column -->
         <div class="task-column" data-status="TODO">
             <h3>TODO</h3>
-            <div class="task" draggable="true" data-id="1" data-category="home">Home Task 1</div>
-            <div class="task" draggable="true" data-id="2" data-category="work">Work Task 1</div>
+            <button id="create-task-btn">Create Task</button>
+            @foreach (var task in Model.Tasks.Where(t => t.StatusId == 1))
+            {
+                <div class="task" draggable="true" data-id="@task.Id" data-category="@task.CategoryId">@task.Name</div>
+            }
         </div>
+
+        <!-- In Progress Column -->
         <div class="task-column" data-status="In Progress">
             <h3>In Progress</h3>
-            <div class="task" draggable="true" data-id="3" data-category="school">School Task 1</div>
+            @foreach (var task in Model.Tasks.Where(t => t.StatusId == 2))
+            {
+                <div class="task" draggable="true" data-id="@task.Id" data-category="@task.CategoryId">@task.Name</div>
+            }
         </div>
+
+        <!-- Done Column -->
         <div class="task-column" data-status="Done">
             <h3>Done</h3>
-            <div class="task" draggable="true" data-id="4" data-category="home">Home Task 2</div>
+            @foreach (var task in Model.Tasks.Where(t => t.StatusId == 3))
+            {
+                <div class="task" draggable="true" data-id="@task.Id" data-category="@task.CategoryId">@task.Name</div>
+            }
         </div>
     </div>
-    <script>
-        const tasks = document.querySelectorAll(".task");
 
-        // Filtrowanie zadań
-        const filterButtons = document.querySelectorAll(".filter-buttons button");
-        filterButtons.forEach(button => {
-            button.addEventListener("click", () => {
-                filterButtons.forEach(btn => btn.classList.remove("active"));
-                button.classList.add("active");
-
-                const category = button.getAttribute("data-category");
-                tasks.forEach(task => {
-                    if (category === "all" || task.getAttribute("data-category") === category) {
-                        task.style.display = "block";
-                    } else {
-                        task.style.display = "none";
+    <!-- Modal Window for Creating a Task -->
+    <div id="create-task-modal" class="modal">
+        <div class="modal-content">
+            <h3>Create Task</h3>
+            <form id="create-task-form">
+                <label for="task-name">Task Name:</label>
+                <input type="text" id="task-name" name="task-name" required>
+                <label for="task-description">Description:</label>
+                <textarea id="task-description" name="task-description"></textarea>
+                <label for="task-category">Category:</label>
+                <select id="task-category" name="task-category">
+                    @foreach (var category in Model.Categories)
+                    {
+                        <option value="@category.Id">@category.Name</option>
                     }
+                </select>
+                <button type="submit">Create</button>
+                <button type="button" id="cancel-btn">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const tasks = document.querySelectorAll(".task");
+            const columns = document.querySelectorAll(".task-column");
+            let draggedTask = null;
+
+            // Drag-and-Drop logic
+            tasks.forEach(task => {
+                task.addEventListener("dragstart", event => {
+                    draggedTask = task;
+                    event.dataTransfer.setData("text/plain", "");
+                });
+
+                task.addEventListener("dragend", () => {
+                    draggedTask = null;
                 });
             });
+
+                  tasks.forEach(task => {
+            task.addEventListener("dblclick", async () => {
+                const taskId = task.getAttribute("data-id");
+
+                // Check if details are already expanded
+                const expandedDetails = task.querySelector(".task-details");
+                if (expandedDetails) {
+                    // If details exist, remove them (collapse)
+                    task.removeChild(expandedDetails);
+                    return;
+                }
+
+                // Fetch task details from the server
+                try {
+                    const response = await fetch(`/api/tasks/${taskId}`);
+                    if (response.ok) {
+                        const taskDetails = await response.json();
+
+                        // Create a container for task details
+                        const detailsDiv = document.createElement("div");
+                        detailsDiv.className = "task-details";
+                        detailsDiv.style.marginTop = "10px";
+                        detailsDiv.style.padding = "5px";
+                        detailsDiv.style.borderTop = "1px solid #ddd";
+                        detailsDiv.style.fontSize = "0.9em";
+                        detailsDiv.style.color = "#555";
+
+                        // Add task description and category
+                        detailsDiv.innerHTML = `
+                            <strong>Description:</strong> ${taskDetails.description || "No description"}<br>
+                            <strong>Category:</strong> ${taskDetails.category || "No category"}
+                        `;
+
+                        // Append the details to the task
+                        task.appendChild(detailsDiv);
+                    } else {
+                        console.error("Failed to fetch task details.");
+                    }
+                } catch (error) {
+                    console.error("Error fetching task details:", error);
+                }
+            });
         });
+                tasks.forEach(task => {
+            // Add menu button to each task
+            const menuButton = document.createElement("div");
+            menuButton.className = "task-menu-button";
+            menuButton.innerHTML = "&#x22EE;"; // Unicode for vertical ellipsis
+            menuButton.style.position = "absolute";
+            menuButton.style.top = "5px";
+            menuButton.style.right = "5px";
+            menuButton.style.cursor = "pointer";
 
-        // Przeciąganie i upuszczanie zadań
-        const columns = document.querySelectorAll(".task-column");
-        let draggedTask = null;
+            // Create the options menu
+            const menu = document.createElement("div");
+            menu.className = "task-menu";
+            menu.style.position = "absolute";
+            menu.style.right = "5px";
+            menu.style.top = "25px";
+            menu.style.background = "#fff";
+            menu.style.border = "1px solid #ddd";
+            menu.style.boxShadow = "0 2px 6px rgba(0, 0, 0, 0.2)";
+            menu.style.borderRadius = "5px";
+            menu.style.display = "none";
+            menu.style.zIndex = "1000";
 
-        tasks.forEach(task => {
-            task.addEventListener("dragstart", event => {
-                draggedTask = task; // Zapisanie przeciąganego zadania
-                event.dataTransfer.setData("text/plain", ""); // Ustawienie danych transferu
+            // Add options to the menu
+            const modifyOption = document.createElement("div");
+            modifyOption.innerText = "Modify";
+            modifyOption.style.padding = "5px 10px";
+            modifyOption.style.cursor = "pointer";
+            modifyOption.style.borderBottom = "1px solid #ddd";
+
+            const deleteOption = document.createElement("div");
+            deleteOption.innerText = "Delete";
+            deleteOption.style.padding = "5px 10px";
+            deleteOption.style.cursor = "pointer";
+
+            menu.appendChild(modifyOption);
+            menu.appendChild(deleteOption);
+
+            // Append menu button and menu to the task
+            task.style.position = "relative";
+            task.appendChild(menuButton);
+            task.appendChild(menu);
+
+            // Show/hide menu
+            menuButton.addEventListener("click", () => {
+                menu.style.display = menu.style.display === "none" ? "block" : "none";
             });
 
-            task.addEventListener("dragend", () => {
-                draggedTask = null; // Wyczyszczenie przeciąganego zadania
-            });
-        });
-
-        columns.forEach(column => {
-            column.addEventListener("dragover", event => {
-                event.preventDefault(); // Pozwolenie na upuszczenie
+            // Hide menu on clicking outside
+            document.addEventListener("click", (event) => {
+                if (!menu.contains(event.target) && event.target !== menuButton) {
+                    menu.style.display = "none";
+                }
             });
 
-            column.addEventListener("drop", event => {
-                event.preventDefault();
-                if (draggedTask) {
-                    // Usunięcie zadania z poprzedniej kolumny
-                    draggedTask.parentNode.removeChild(draggedTask);
-                    // Dodanie zadania do nowej kolumny
-                    column.appendChild(draggedTask);
-                    draggedTask = null;
+            // Modify option logic
+            modifyOption.addEventListener("click", async () => {
+                const taskId = task.getAttribute("data-id");
+
+                // Fetch task details
+                try {
+                    const response = await fetch(`/api/tasks/${taskId}`);
+                    if (response.ok) {
+                        const taskDetails = await response.json();
+
+                        // Open modal and populate fields
+                        document.getElementById("task-name").value = taskDetails.name;
+                        document.getElementById("task-description").value = taskDetails.description;
+                        document.getElementById("task-category").value = taskDetails.categoryId;
+
+                        const modal = document.getElementById("create-task-modal");
+                        modal.style.display = "block";
+
+                        // Update form submission for modification
+                        const createTaskForm = document.getElementById("create-task-form");
+                        createTaskForm.onsubmit = async (event) => {
+                            event.preventDefault();
+
+                            try {
+                                const response = await fetch(`/api/tasks/${taskId}`, {
+                                    method: "PUT",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                    },
+                                    body: JSON.stringify({
+                                        name: document.getElementById("task-name").value,
+                                        description: document.getElementById("task-description").value,
+                                        categoryId: parseInt(document.getElementById("task-category").value),
+                                    }),
+                                });
+
+                                if (response.ok) {
+                                    // Update task display
+                                    task.querySelector(".task-details")?.remove();
+                                    task.textContent = document.getElementById("task-name").value;
+
+                                    task.appendChild(menuButton);
+                                    task.appendChild(menu);
+                                    modal.style.display = "none";
+                                }
+                            } catch (error) {
+                                console.error("Error updating task:", error);
+                            }
+                        };
+                    }
+                } catch (error) {
+                    console.error("Error fetching task details for modification:", error);
+                }
+            });
+
+            // Delete option logic
+            deleteOption.addEventListener("click", async () => {
+                const taskId = task.getAttribute("data-id");
+
+                try {
+                    const response = await fetch(`/api/tasks/${taskId}`, {
+                        method: "DELETE",
+                    });
+
+                    if (response.ok) {
+                        // Remove task from the UI
+                        task.remove();
+                    } else {
+                        console.error("Failed to delete task.");
+                    }
+                } catch (error) {
+                    console.error("Error deleting task:", error);
                 }
             });
         });
 
-        // Mapowanie nazw statusów na ID
-        function mapStatusToId(status) {
-            switch (status) {
-                case "TODO":
-                    return 1;
-                case "In Progress":
-                    return 2;
-                case "Done":
-                    return 3;
-                default:
-                    return 1;
-            }
-        }
 
-        // Zbieranie danych do zapisu
-        function collectTaskStatuses() {
-            const taskData = [];
-            document.querySelectorAll(".task").forEach(task => {
-                const taskId = task.getAttribute("data-id");
-                const statusColumn = task.parentNode.getAttribute("data-status");
-                const statusId = mapStatusToId(statusColumn);
-                taskData.push({ id: parseInt(taskId), statusId: statusId });
-            });
-            return taskData;
-        }
 
-        // Wysyłanie danych do API
-        async function saveTaskStatuses() {
-            const taskData = collectTaskStatuses();
-            try {
-                await fetch("/api/tasks/update-status", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(taskData),
+            columns.forEach(column => {
+                column.addEventListener("dragover", event => {
+                    event.preventDefault();
                 });
-                console.log("Statuses saved successfully.");
-            } catch (error) {
-                console.error("Failed to save task statuses:", error);
-            }
-        }
 
-        // Obsługa wylogowania
-        const logoutButton = document.querySelector("#logout-button"); // Zakładamy, że przycisk wylogowania ma ID "logout-button"
-        if (logoutButton) {
-            logoutButton.addEventListener("click", async (event) => {
-                event.preventDefault();
-                await saveTaskStatuses();
-                // Po zapisaniu, kontynuuj wylogowanie
-                window.location.href = logoutButton.href;
+                column.addEventListener("drop", event => {
+                    event.preventDefault();
+                    if (draggedTask) {
+                        const oldParent = draggedTask.parentNode;
+                        oldParent.removeChild(draggedTask);
+                        column.appendChild(draggedTask);
+
+                        const statusColumn = column.getAttribute("data-status");
+                        const taskId = draggedTask.getAttribute("data-id");
+
+                        // Update the task's status in memory for saving later
+                        draggedTask.dataset.status = statusColumn;
+
+                        console.log(`Task ${taskId} moved to ${statusColumn}.`);
+                    }
+                });
             });
-        }
 
-        // Zapis przy zamknięciu lub odświeżeniu strony
-        window.addEventListener("beforeunload", saveTaskStatuses);
+            // Save Task Statuses
+            async function saveTaskStatuses() {
+                const tasksToUpdate = [];
+                document.querySelectorAll(".task").forEach(task => {
+                    const taskId = task.getAttribute("data-id");
+                    const status = task.dataset.status || task.parentNode.getAttribute("data-status");
+
+                    tasksToUpdate.push({
+                        id: parseInt(taskId),
+                        statusId: mapStatusToId(status),
+                    });
+                });
+
+                try {
+                    await fetch("/api/tasks/update-statuses", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(tasksToUpdate),
+                    });
+                    console.log("Task statuses saved successfully.");
+                } catch (error) {
+                    console.error("Error saving task statuses:", error);
+                }
+            }
+
+            // Logout Button Handling
+            const logoutButton = document.getElementById("logout-button");
+            if (logoutButton) {
+                logoutButton.addEventListener("click", async (event) => {
+                    event.preventDefault(); // Prevent default logout behavior
+                    await saveTaskStatuses(); // Save tasks before logging out
+                    window.location.href = logoutButton.href; // Redirect to logout
+                });
+            }
+
+            // Create Task Modal Logic
+            const createTaskBtn = document.getElementById("create-task-btn");
+            const modal = document.getElementById("create-task-modal");
+            const cancelBtn = document.getElementById("cancel-btn");
+            const createTaskForm = document.getElementById("create-task-form");
+
+            createTaskBtn.addEventListener("click", () => {
+                modal.style.display = "block";
+            });
+
+            cancelBtn.addEventListener("click", () => {
+                modal.style.display = "none";
+            });
+
+            createTaskForm.addEventListener("submit", async (event) => {
+                event.preventDefault();
+
+                const taskName = document.getElementById("task-name").value;
+                const taskDescription = document.getElementById("task-description").value;
+                const taskCategory = document.getElementById("task-category").value;
+
+                try {
+                    const response = await fetch("/api/tasks/create", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            name: taskName,
+                            description: taskDescription,
+                            categoryId: parseInt(taskCategory),
+                            statusId: 1,
+                        }),
+                    });
+
+                    if (response.ok) {
+                        const newTask = await response.json();
+                        const todoColumn = document.querySelector('[data-status="TODO"]');
+
+                        const taskDiv = document.createElement("div");
+                        taskDiv.className = "task";
+                        taskDiv.setAttribute("draggable", "true");
+                        taskDiv.setAttribute("data-id", newTask.id);
+                        taskDiv.setAttribute("data-category", newTask.categoryId);
+                        taskDiv.textContent = newTask.name;
+
+                        todoColumn.appendChild(taskDiv);
+
+                        taskDiv.addEventListener("dragstart", event => {
+                            draggedTask = taskDiv;
+                            event.dataTransfer.setData("text/plain", "");
+                        });
+
+                        taskDiv.addEventListener("dragend", () => {
+                            draggedTask = null;
+                        });
+
+                        modal.style.display = "none";
+                        createTaskForm.reset();
+                    }
+                } catch (error) {
+                    console.error("Error creating task:", error);
+                }
+            });
+
+            // Map column names to status IDs
+            function mapStatusToId(status) {
+                switch (status) {
+                    case "TODO":
+                        return 1;
+                    case "In Progress":
+                        return 2;
+                    case "Done":
+                        return 3;
+                    default:
+                        return 1;
+                }
+            }
+
+            // Save on Page Unload
+            window.addEventListener("beforeunload", saveTaskStatuses);
+        });
     </script>
 </body>
 </html>

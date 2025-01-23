@@ -22,13 +22,20 @@ namespace TaskManager.Data
         {
             base.OnModelCreating(builder);
 
-            // Seed ról
+            // Configure TPH with Discriminator
+            builder.Entity<User>()
+                .HasDiscriminator<string>("Discriminator")
+                .HasValue<User>("User")
+                .HasValue<RegularUser>("RegularUser")
+                .HasValue<Administrator>("Administrator");
+
+            // Seed roles
             builder.Entity<IdentityRole>().HasData(
                 new IdentityRole { Id = "admin-role-id", Name = "Admin", NormalizedName = "ADMIN" },
                 new IdentityRole { Id = "user-role-id", Name = "User", NormalizedName = "USER" }
             );
 
-            // Seed administratora
+            // Seed admin user
             var admin = new Administrator
             {
                 Id = "admin-id",
@@ -40,21 +47,11 @@ namespace TaskManager.Data
                 SecurityStamp = Guid.NewGuid().ToString()
             };
 
-            var adminPasswordHasher = new PasswordHasher<Administrator>();
-            admin.PasswordHash = adminPasswordHasher.HashPassword(admin, "Admin123!");
-
+            var passwordHasher = new PasswordHasher<User>();
+            admin.PasswordHash = passwordHasher.HashPassword(admin, "Admin123!");
             builder.Entity<Administrator>().HasData(admin);
 
-            // Przypisanie roli administratora
-            builder.Entity<IdentityUserRole<string>>().HasData(
-                new IdentityUserRole<string>
-                {
-                    UserId = "admin-id",
-                    RoleId = "admin-role-id"
-                }
-            );
-
-            // Seed regularnego użytkownika (przykład)
+            // Seed regular user
             var regularUser = new RegularUser
             {
                 Id = "user-id",
@@ -66,13 +63,16 @@ namespace TaskManager.Data
                 SecurityStamp = Guid.NewGuid().ToString()
             };
 
-            var regularUserPasswordHasher = new PasswordHasher<RegularUser>();
-            regularUser.PasswordHash = regularUserPasswordHasher.HashPassword(regularUser, "User123!");
-
+            regularUser.PasswordHash = passwordHasher.HashPassword(regularUser, "User123!");
             builder.Entity<RegularUser>().HasData(regularUser);
 
-            // Przypisanie roli użytkownika
+            // Assign roles
             builder.Entity<IdentityUserRole<string>>().HasData(
+                new IdentityUserRole<string>
+                {
+                    UserId = "admin-id",
+                    RoleId = "admin-role-id"
+                },
                 new IdentityUserRole<string>
                 {
                     UserId = "user-id",
@@ -80,19 +80,23 @@ namespace TaskManager.Data
                 }
             );
 
-            // Seed kategorii
+            // Seed example tasks and projects
+            builder.Entity<TaskItem>().HasData(
+                new TaskItem { Id = 1, Name = "Task 1", AssignedUserId = "user-id", Description = "Smth" },
+                new TaskItem { Id = 2, Name = "Admin Task 1", AssignedUserId = "admin-id",
+                    Description = "Smth" }
+            );
+
             builder.Entity<Category>().HasData(
                 new Category { Id = 1, Name = "Home" },
                 new Category { Id = 2, Name = "Work" },
                 new Category { Id = 3, Name = "School" }
             );
 
-            // Seed statusów
-            builder.Entity<Status>().HasData(
-                new Status { Id = 1, Name = "TODO" },
-                new Status { Id = 2, Name = "In Progress" },
-                new Status { Id = 3, Name = "Done" }
-            );
+            //builder.Entity<Project>().HasData(
+            //    new Project { Id = 1, Name = "Admin Project 1", OwnerId = "admin-id" }
+            //);
         }
+
     }
 }

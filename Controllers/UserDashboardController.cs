@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TaskManager.Data;
 using TaskManager.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace TaskManager.Controllers
 {
@@ -26,11 +27,19 @@ namespace TaskManager.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            var tasks = _context.TaskItems
+            var tasks = await _context.TaskItems
                 .Where(t => t.AssignedUserId == currentUser.Id)
-                .ToList();
+                .ToListAsync();
 
-            return View(tasks);
+            var categories = await _context.Categories.ToListAsync();
+
+            var model = new UserDashboardViewModel
+            {
+                Tasks = tasks,
+                Categories = categories
+            };
+
+            return View(model);
         }
     }
 }

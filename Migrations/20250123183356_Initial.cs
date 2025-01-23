@@ -254,7 +254,7 @@ namespace TaskManager.Migrations
                 values: new object[,]
                 {
                     { "admin-role-id", null, "Admin", "ADMIN" },
-                    { "user-role-id", null, "User", "USER" }
+                    { "user-role-id", null, "RegularUser", "REGULARUSER" }
                 });
 
             migrationBuilder.InsertData(
@@ -262,8 +262,8 @@ namespace TaskManager.Migrations
                 columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "Discriminator", "Email", "EmailConfirmed", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "TwoFactorEnabled", "UserName" },
                 values: new object[,]
                 {
-                    { "admin-id", 0, "40945b05-99f6-4a2a-b327-ae23bfbfacc9", "Administrator", "admin@example.com", true, false, null, "ADMIN@EXAMPLE.COM", "ADMIN", "AQAAAAIAAYagAAAAEKRmOOCpBIsbwCUgYrIvsk9hHaH7/FOtRUBY866za3V/cpkJ0oLAtDU2dv1g8qd86g==", null, false, "e10cb681-d980-45f7-9708-603bfce5dd4a", false, "admin" },
-                    { "user-id", 0, "344ffa45-9910-41f3-a426-40d76c3babda", "RegularUser", "regularuser@example.com", true, false, null, "REGULARUSER@EXAMPLE.COM", "REGULARUSER", "AQAAAAIAAYagAAAAEPFqbd7cPty+1Q2xeCgDBP0kQpkqG+XOKHpHAsdNgWjaMMgn4Jgqgdaf420iBa12kg==", null, false, "fd34e1d0-60af-4bc2-9b99-c05e435138ab", false, "regularuser" }
+                    { "admin-id", 0, "a2bfbfef-185f-4c8b-8fc4-339d6fdb0a42", "Administrator", "admin@example.com", true, false, null, "ADMIN@EXAMPLE.COM", "ADMIN", "AQAAAAIAAYagAAAAEBqG61tc7ImqbFVpklpsmq46Ft/B5F/OrqR5T+/GpjxEo/BzwgyT9uQR2puL0alyAQ==", null, false, "95fee56b-abe6-4e60-8246-7bde05c80249", false, "admin" },
+                    { "user-id", 0, "033ff5eb-711d-4af7-b1ce-99638f1907f2", "RegularUser", "regularuser@example.com", true, false, null, "REGULARUSER@EXAMPLE.COM", "REGULARUSER", "AQAAAAIAAYagAAAAED95G+tKiWGlo7ejIBD1vg2jSOvrgwrp0Gj6rUkVYpDq9PkWvYQUqPT9mxpsDecxTw==", null, false, "d667c1e3-7a4c-453f-91d9-de47d32ea0d3", false, "regularuser" }
                 });
 
             migrationBuilder.InsertData(

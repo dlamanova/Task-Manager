@@ -12,7 +12,7 @@ using TaskManager.Data;
 namespace TaskManager.Migrations
 {
     [DbContext(typeof(TaskManagerContext))]
-    [Migration("20250122230016_Initial")]
+    [Migration("20250123183356_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -61,8 +61,8 @@ namespace TaskManager.Migrations
                         new
                         {
                             Id = "user-role-id",
-                            Name = "User",
-                            NormalizedName = "USER"
+                            Name = "RegularUser",
+                            NormalizedName = "REGULARUSER"
                         });
                 });
 
@@ -417,15 +417,15 @@ namespace TaskManager.Migrations
                         {
                             Id = "admin-id",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "40945b05-99f6-4a2a-b327-ae23bfbfacc9",
+                            ConcurrencyStamp = "a2bfbfef-185f-4c8b-8fc4-339d6fdb0a42",
                             Email = "admin@example.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@EXAMPLE.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEKRmOOCpBIsbwCUgYrIvsk9hHaH7/FOtRUBY866za3V/cpkJ0oLAtDU2dv1g8qd86g==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEBqG61tc7ImqbFVpklpsmq46Ft/B5F/OrqR5T+/GpjxEo/BzwgyT9uQR2puL0alyAQ==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "e10cb681-d980-45f7-9708-603bfce5dd4a",
+                            SecurityStamp = "95fee56b-abe6-4e60-8246-7bde05c80249",
                             TwoFactorEnabled = false,
                             UserName = "admin"
                         });
@@ -442,15 +442,15 @@ namespace TaskManager.Migrations
                         {
                             Id = "user-id",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "344ffa45-9910-41f3-a426-40d76c3babda",
+                            ConcurrencyStamp = "033ff5eb-711d-4af7-b1ce-99638f1907f2",
                             Email = "regularuser@example.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "REGULARUSER@EXAMPLE.COM",
                             NormalizedUserName = "REGULARUSER",
-                            PasswordHash = "AQAAAAIAAYagAAAAEPFqbd7cPty+1Q2xeCgDBP0kQpkqG+XOKHpHAsdNgWjaMMgn4Jgqgdaf420iBa12kg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAED95G+tKiWGlo7ejIBD1vg2jSOvrgwrp0Gj6rUkVYpDq9PkWvYQUqPT9mxpsDecxTw==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "fd34e1d0-60af-4bc2-9b99-c05e435138ab",
+                            SecurityStamp = "d667c1e3-7a4c-453f-91d9-de47d32ea0d3",
                             TwoFactorEnabled = false,
                             UserName = "regularuser"
                         });
