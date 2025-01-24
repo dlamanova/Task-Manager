@@ -109,13 +109,16 @@ namespace TaskManager.Areas.Identity.Pages.Account
 
             if (ModelState.IsValid)
             {
-                _logger.LogInformation($"Login attempt for email: {Input.Email}");
+                _logger.LogInformation($"Login attempt for email/username: {Input.Email}");
 
-                // Fetch the user using email
-                var user = await _signInManager.UserManager.FindByEmailAsync(Input.Email);
+                // Check if the input is an email or username
+                var user = Input.Email.Contains('@')
+                    ? await _signInManager.UserManager.FindByEmailAsync(Input.Email)
+                    : await _signInManager.UserManager.FindByNameAsync(Input.Email);
+
                 if (user == null)
                 {
-                    _logger.LogWarning($"No user found with email: {Input.Email}");
+                    _logger.LogWarning($"No user found with email/username: {Input.Email}");
                     ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                     return Page();
                 }
@@ -124,12 +127,12 @@ namespace TaskManager.Areas.Identity.Pages.Account
                 var isPasswordValid = await _signInManager.UserManager.CheckPasswordAsync(user, Input.Password);
                 if (!isPasswordValid)
                 {
-                    _logger.LogWarning($"Invalid password for email: {Input.Email}");
+                    _logger.LogWarning($"Invalid password for email/username: {Input.Email}");
                     ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                     return Page();
                 }
 
-                // Sign in using email
+                // Sign in
                 var result = await _signInManager.PasswordSignInAsync(user, Input.Password, false, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
@@ -142,10 +145,10 @@ namespace TaskManager.Areas.Identity.Pages.Account
                     ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                 }
             }
-            //return RedirectToAction("Index", "UserDashboard");
 
             return Page();
         }
+
 
     }
 }

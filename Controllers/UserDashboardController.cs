@@ -97,6 +97,7 @@ namespace TaskManager.Controllers
                 task.Id,
                 task.Name,
                 task.Description,
+                task.CategoryId,
                 Category = task.Category?.Name
             });
         }

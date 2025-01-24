@@ -187,6 +187,29 @@
         </div>
     </div>
 
+    <!-- Modal Window for Modifying a Task -->
+    <div id="modify-task-modal" class="modal">
+        <div class="modal-content">
+            <h3>Modify Task</h3>
+            <form id="modify-task-form">
+                <label for="modify-task-name">Task Name:</label>
+                <input type="text" id="modify-task-name" name="task-name" required>
+                <label for="modify-task-description">Description:</label>
+                <textarea id="modify-task-description" name="task-description"></textarea>
+                <label for="modify-task-category">Category:</label>
+                <select id="modify-task-category" name="task-category">
+                    @foreach (var category in Model.Categories)
+                    {
+                        <option value="@category.Id">@category.Name</option>
+                    }
+                </select>
+                <button type="submit">Update</button>
+                <button type="button" id="modify-cancel-btn">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const modal = document.getElementById("create-task-modal");
@@ -350,35 +373,84 @@
                     }
                 });
 
-                modifyOption.addEventListener("click", async () => {
-                const taskId = task.getAttribute("data-id");
+                        // Function to handle task modification
+        modifyOption.addEventListener("click", async () => {
+            const taskId = task.getAttribute("data-id");
 
-                try {
-                    const response = await fetch(`/api/tasks/${taskId}`);
-                    if (response.ok) {
-                        const taskDetails = await response.json();
+            try {
+                const response = await fetch(`/api/tasks/${taskId}`);
+                if (response.ok) {
+                    const taskDetails = await response.json();
 
-                        // Populate the form with task details
-                        document.getElementById("task-id").value = taskDetails.id;
-                        document.getElementById("task-name").value = taskDetails.name;
-                        document.getElementById("task-description").value = taskDetails.description;
+                    // Populate the Modify Task modal with the current task details
+                    document.getElementById("modify-task-name").value = taskDetails.name;
+                    document.getElementById("modify-task-description").value = taskDetails.description;
 
-                        // Set the current category as the default selected option
-                        const categorySelect = document.getElementById("task-category");
-                        Array.from(categorySelect.options).forEach((option) => {
-                            if (parseInt(option.value) === taskDetails.categoryId) {
-                                option.selected = true;
-                            }
-                        });
+                    // Set the current category as the default selected option
+                    const modifyCategorySelect = document.getElementById("modify-task-category");
+                    Array.from(modifyCategorySelect.options).forEach((option) => {
+                        if (parseInt(option.value) === taskDetails.categoryId) {
+                            option.selected = true;
+                        }
+                    });
 
-                        modal.style.display = "block";
-                    } else {
-                        console.error("Failed to fetch task details.");
-                    }
-                } catch (error) {
-                    console.error("Error fetching task details:", error);
+                    // Show the Modify Task modal
+                    document.getElementById("modify-task-modal").style.display = "block";
+
+                    // Store the task ID for submission
+                    document.getElementById("modify-task-form").dataset.taskId = taskId;
+                } else {
+                    console.error("Failed to fetch task details.");
                 }
-            });
+            } catch (error) {
+                console.error("Error fetching task details:", error);
+            }
+        });
+
+        // Close the Modify Task modal
+        document.getElementById("modify-cancel-btn").addEventListener("click", () => {
+            document.getElementById("modify-task-modal").style.display = "none";
+        });
+
+        // Handle Modify Task form submission
+                document.getElementById("modify-task-form").addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const taskId = event.target.dataset.taskId;
+            const updatedTaskData = {
+                name: document.getElementById("modify-task-name").value,
+                description: document.getElementById("modify-task-description").value,
+                categoryId: parseInt(document.getElementById("modify-task-category").value),
+            };
+
+            try {
+                const response = await fetch(`/api/tasks/${taskId}`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(updatedTaskData),
+                });
+
+                if (response.ok) {
+                    const taskElement = document.querySelector(`.task[data-id='${taskId}']`);
+                    taskElement.textContent = updatedTaskData.name;
+
+                    // Reattach menu button functionality
+                    addMenuButton(taskElement);
+
+                    // Close the modal
+                    document.getElementById("modify-task-modal").style.display = "none";
+                    console.log(`Task ${taskId} updated successfully.`);
+                } else {
+                    console.error("Failed to update task.");
+                }
+            } catch (error) {
+                console.error("Error updating task:", error);
+            }
+        });
+
+
 
             deleteOption.addEventListener("click", async () => {
             const taskId = task.getAttribute("data-id");
