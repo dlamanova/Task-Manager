@@ -215,7 +215,7 @@ namespace TaskManager.Migrations
                     Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Deadline = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    AssignedUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    AssignedUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     CategoryId = table.Column<int>(type: "int", nullable: false),
                     StatusId = table.Column<int>(type: "int", nullable: false),
                     ProjectId = table.Column<int>(type: "int", nullable: true)
@@ -227,8 +227,7 @@ namespace TaskManager.Migrations
                         name: "FK_TaskItems_AspNetUsers_AssignedUserId",
                         column: x => x.AssignedUserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_TaskItems_Categories_CategoryId",
                         column: x => x.CategoryId,
@@ -254,7 +253,7 @@ namespace TaskManager.Migrations
                 values: new object[,]
                 {
                     { "admin-role-id", null, "Admin", "ADMIN" },
-                    { "user-role-id", null, "RegularUser", "REGULARUSER" }
+                    { "user-role-id", null, "User", "USER" }
                 });
 
             migrationBuilder.InsertData(
@@ -262,8 +261,8 @@ namespace TaskManager.Migrations
                 columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "Discriminator", "Email", "EmailConfirmed", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "TwoFactorEnabled", "UserName" },
                 values: new object[,]
                 {
-                    { "admin-id", 0, "a2bfbfef-185f-4c8b-8fc4-339d6fdb0a42", "Administrator", "admin@example.com", true, false, null, "ADMIN@EXAMPLE.COM", "ADMIN", "AQAAAAIAAYagAAAAEBqG61tc7ImqbFVpklpsmq46Ft/B5F/OrqR5T+/GpjxEo/BzwgyT9uQR2puL0alyAQ==", null, false, "95fee56b-abe6-4e60-8246-7bde05c80249", false, "admin" },
-                    { "user-id", 0, "033ff5eb-711d-4af7-b1ce-99638f1907f2", "RegularUser", "regularuser@example.com", true, false, null, "REGULARUSER@EXAMPLE.COM", "REGULARUSER", "AQAAAAIAAYagAAAAED95G+tKiWGlo7ejIBD1vg2jSOvrgwrp0Gj6rUkVYpDq9PkWvYQUqPT9mxpsDecxTw==", null, false, "d667c1e3-7a4c-453f-91d9-de47d32ea0d3", false, "regularuser" }
+                    { "admin-id", 0, "cb96ca18-886c-4bcf-ab55-6751cbc15492", "Administrator", "admin@example.com", true, false, null, "ADMIN@EXAMPLE.COM", "ADMIN", "AQAAAAIAAYagAAAAEB040zsAQVMEIdtpW8uqGbSNCJO0z2Qw8xjilrgZsNjH5ktXwhkhEf8ivGBmPSuq+g==", null, false, "aef491e2-0b82-48a3-98b8-943f412eb518", false, "admin" },
+                    { "user-id", 0, "bb3b9606-64bf-4051-a350-7c1027c7d5e9", "RegularUser", "regularuser@example.com", true, false, null, "REGULARUSER@EXAMPLE.COM", "REGULARUSER", "AQAAAAIAAYagAAAAEAyfj7NR5nfLT+5Z9lhM15iFXjd2MDCc09udPoBW+62DGaw2ktOV/ZgI9QZurDtVKw==", null, false, "5c08f36d-8d0a-4a02-98fd-0210d59bb8e6", false, "regularuser" }
                 });
 
             migrationBuilder.InsertData(
@@ -293,6 +292,15 @@ namespace TaskManager.Migrations
                 {
                     { "admin-role-id", "admin-id" },
                     { "user-role-id", "user-id" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "TaskItems",
+                columns: new[] { "Id", "AssignedUserId", "CategoryId", "Deadline", "Description", "Name", "ProjectId", "StatusId" },
+                values: new object[,]
+                {
+                    { 1, "user-id", 1, new DateTime(2025, 1, 31, 17, 41, 4, 214, DateTimeKind.Local).AddTicks(5032), "Sample task for a regular user", "Task 1", null, 1 },
+                    { 2, "admin-id", 2, new DateTime(2025, 2, 3, 17, 41, 4, 214, DateTimeKind.Local).AddTicks(5129), "Sample task for an admin user", "Admin Task 1", null, 1 }
                 });
 
             migrationBuilder.CreateIndex(

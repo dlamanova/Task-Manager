@@ -81,8 +81,8 @@ namespace TaskManager.Areas.Identity.Pages.Account
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
-            //[Display(Name = "Remember me?")]
-            //public bool RememberMe { get; set; }
+            [Required]
+            public string Role { get; set; } // Selected role from the buttons
         }
 
         public async Task OnGetAsync(string returnUrl = null)
@@ -123,6 +123,15 @@ namespace TaskManager.Areas.Identity.Pages.Account
                     return Page();
                 }
 
+                // Validate role by comparing the discriminator (actual role in DB)
+                string actualRole = user is Administrator ? "Administrator" : "RegularUser";
+                if (Input.Role != actualRole)
+                {
+                    _logger.LogWarning($"Role mismatch for user {Input.Email}. Selected: {Input.Role}, Actual: {actualRole}");
+                    ModelState.AddModelError(string.Empty, "The selected role does not match your account type.");
+                    return Page();
+                }
+
                 // Validate password
                 var isPasswordValid = await _signInManager.UserManager.CheckPasswordAsync(user, Input.Password);
                 if (!isPasswordValid)
@@ -137,7 +146,9 @@ namespace TaskManager.Areas.Identity.Pages.Account
                 if (result.Succeeded)
                 {
                     _logger.LogInformation($"User {Input.Email} successfully logged in.");
-                    return RedirectToAction("Index", "UserDashboard");
+                    var roles = await _signInManager.UserManager.GetRolesAsync(user);
+
+                    return RedirectToDashboard(Input.Role);
                 }
                 else
                 {
@@ -149,6 +160,11 @@ namespace TaskManager.Areas.Identity.Pages.Account
             return Page();
         }
 
-
+        private IActionResult RedirectToDashboard(string role)
+        {
+            return role == "Administrator"
+                ? RedirectToAction("Index", "AdminDashboard")
+                : RedirectToAction("Index", "UserDashboard");
+        }
     }
 }

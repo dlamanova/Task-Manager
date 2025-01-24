@@ -18,8 +18,8 @@ namespace TaskManager.Models
         public DateTime Deadline { get; set; }
 
         [ForeignKey("AssignedUserId")]
-        public User AssignedUser { get; set; }
-        public string AssignedUserId { get; set; }
+        public User? AssignedUser { get; set; }
+        public string? AssignedUserId { get; set; }
 
         [ForeignKey("CategoryId")]
         public Category Category { get; set; }

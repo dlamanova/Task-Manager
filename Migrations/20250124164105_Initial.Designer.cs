@@ -12,7 +12,7 @@ using TaskManager.Data;
 namespace TaskManager.Migrations
 {
     [DbContext(typeof(TaskManagerContext))]
-    [Migration("20250123183356_Initial")]
+    [Migration("20250124164105_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -61,8 +61,8 @@ namespace TaskManager.Migrations
                         new
                         {
                             Id = "user-role-id",
-                            Name = "RegularUser",
-                            NormalizedName = "REGULARUSER"
+                            Name = "User",
+                            NormalizedName = "USER"
                         });
                 });
 
@@ -295,7 +295,6 @@ namespace TaskManager.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("AssignedUserId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("CategoryId")
@@ -330,6 +329,28 @@ namespace TaskManager.Migrations
                     b.HasIndex("StatusId");
 
                     b.ToTable("TaskItems");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            AssignedUserId = "user-id",
+                            CategoryId = 1,
+                            Deadline = new DateTime(2025, 1, 31, 17, 41, 4, 214, DateTimeKind.Local).AddTicks(5032),
+                            Description = "Sample task for a regular user",
+                            Name = "Task 1",
+                            StatusId = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            AssignedUserId = "admin-id",
+                            CategoryId = 2,
+                            Deadline = new DateTime(2025, 2, 3, 17, 41, 4, 214, DateTimeKind.Local).AddTicks(5129),
+                            Description = "Sample task for an admin user",
+                            Name = "Admin Task 1",
+                            StatusId = 1
+                        });
                 });
 
             modelBuilder.Entity("TaskManager.Models.User", b =>
@@ -417,15 +438,15 @@ namespace TaskManager.Migrations
                         {
                             Id = "admin-id",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "a2bfbfef-185f-4c8b-8fc4-339d6fdb0a42",
+                            ConcurrencyStamp = "cb96ca18-886c-4bcf-ab55-6751cbc15492",
                             Email = "admin@example.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@EXAMPLE.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEBqG61tc7ImqbFVpklpsmq46Ft/B5F/OrqR5T+/GpjxEo/BzwgyT9uQR2puL0alyAQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEB040zsAQVMEIdtpW8uqGbSNCJO0z2Qw8xjilrgZsNjH5ktXwhkhEf8ivGBmPSuq+g==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "95fee56b-abe6-4e60-8246-7bde05c80249",
+                            SecurityStamp = "aef491e2-0b82-48a3-98b8-943f412eb518",
                             TwoFactorEnabled = false,
                             UserName = "admin"
                         });
@@ -442,15 +463,15 @@ namespace TaskManager.Migrations
                         {
                             Id = "user-id",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "033ff5eb-711d-4af7-b1ce-99638f1907f2",
+                            ConcurrencyStamp = "bb3b9606-64bf-4051-a350-7c1027c7d5e9",
                             Email = "regularuser@example.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "REGULARUSER@EXAMPLE.COM",
                             NormalizedUserName = "REGULARUSER",
-                            PasswordHash = "AQAAAAIAAYagAAAAED95G+tKiWGlo7ejIBD1vg2jSOvrgwrp0Gj6rUkVYpDq9PkWvYQUqPT9mxpsDecxTw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEAyfj7NR5nfLT+5Z9lhM15iFXjd2MDCc09udPoBW+62DGaw2ktOV/ZgI9QZurDtVKw==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "d667c1e3-7a4c-453f-91d9-de47d32ea0d3",
+                            SecurityStamp = "5c08f36d-8d0a-4a02-98fd-0210d59bb8e6",
                             TwoFactorEnabled = false,
                             UserName = "regularuser"
                         });
@@ -522,9 +543,7 @@ namespace TaskManager.Migrations
                 {
                     b.HasOne("TaskManager.Models.User", "AssignedUser")
                         .WithMany("Tasks")
-                        .HasForeignKey("AssignedUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("AssignedUserId");
 
                     b.HasOne("TaskManager.Models.Category", "Category")
                         .WithMany("TaskItems")

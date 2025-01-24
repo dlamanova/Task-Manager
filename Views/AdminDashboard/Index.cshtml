@@ -1,0 +1,357 @@
+﻿@model TaskManager.Models.AdminDashboardViewModel
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Board</title>
+    <style>
+        body {
+            background-color: #a8d5c1;
+            font-family: Arial, sans-serif;
+        }
+
+        .task-board {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .task-column, .project-column {
+            background-color: #d9f0e7;
+            padding: 20px;
+            border-radius: 10px;
+            width: 25%;
+            min-height: 200px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .project-column {
+            background-color: #c5e3dc; /* Slightly darker for projects column */
+        }
+
+            .task-column h3, .project-column h3 {
+                text-align: center;
+                color: #333;
+            }
+
+        .task, .project {
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            cursor: grab;
+        }
+
+        button#create-task-btn, button#create-project-btn {
+            margin-bottom: 10px;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #83c2af;
+            color: white;
+            cursor: pointer;
+        }
+
+            button#create-task-btn:hover, button#create-project-btn:hover {
+                background-color: #5aa899;
+            }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            width: 50%;
+            max-width: 400px;
+            margin: 100px auto;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+            .modal-content form label {
+                display: block;
+                margin-top: 10px;
+            }
+
+            .modal-content form input,
+            .modal-content form textarea,
+            .modal-content form select {
+                width: 100%;
+                padding: 10px;
+                margin-top: 5px;
+                margin-bottom: 10px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+            }
+
+            .modal-content form button {
+                padding: 5px 10px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+
+                .modal-content form button[type="submit"] {
+                    background-color: #83c2af;
+                    color: white;
+                }
+
+                    .modal-content form button[type="submit"]:hover {
+                        background-color: #5aa899;
+                    }
+
+                .modal-content form button#cancel-btn {
+                    background-color: #f5f5f5;
+                    margin-left: 10px;
+                }
+
+                    .modal-content form button#cancel-btn:hover {
+                        background-color: #e0e0e0;
+                    }
+    </style>
+</head>
+<body>
+    <div class="task-board">
+        <!-- TODO Column -->
+        <div class="task-column" data-status="TODO">
+            <h3>TODO</h3>
+            <button id="create-task-btn">Create Task</button>
+            @foreach (var task in Model.Tasks.Where(t => t.StatusId == 1))
+            {
+                <div class="task" draggable="true" data-id="@task.Id" data-category="@task.CategoryId">@task.Name</div>
+            }
+        </div>
+
+        <!-- In Progress Column -->
+        <div class="task-column" data-status="In Progress">
+            <h3>In Progress</h3>
+            @foreach (var task in Model.Tasks.Where(t => t.StatusId == 2))
+            {
+                <div class="task" draggable="true" data-id="@task.Id" data-category="@task.CategoryId">@task.Name</div>
+            }
+        </div>
+
+        <!-- Done Column -->
+        <div class="task-column" data-status="Done">
+            <h3>Done</h3>
+            @foreach (var task in Model.Tasks.Where(t => t.StatusId == 3))
+            {
+                <div class="task" draggable="true" data-id="@task.Id" data-category="@task.CategoryId">@task.Name</div>
+            }
+        </div>
+
+        <!-- Projects Column -->
+        <div class="project-column">
+            <h3>Projects</h3>
+            <button id="create-project-btn">Create Project</button>
+            @foreach (var project in Model.Projects)
+            {
+                <div class="project" draggable="true" data-id="@project.Id">@project.Name</div>
+            }
+        </div>
+    </div>
+
+
+
+    <!-- Modal Window for Creating a Task -->
+    <div id="create-task-modal" class="modal">
+        <div class="modal-content">
+            <h3>Create Task</h3>
+            <form id="create-task-form">
+                <label for="task-name">Task Name:</label>
+                <input type="text" id="task-name" name="task-name" required>
+                <label for="task-description">Description:</label>
+                <textarea id="task-description" name="task-description"></textarea>
+                <label for="task-category">Category:</label>
+                <select id="task-category" name="task-category">
+                    @foreach (var category in Model.Categories)
+                    {
+                        <option value="@category.Id">@category.Name</option>
+                    }
+                </select>
+                <button type="submit">Submit</button>
+                <button type="button" id="cancel-btn">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Window for Modifying a Task -->
+    <div id="modify-task-modal" class="modal">
+        <div class="modal-content">
+            <h3>Modify Task</h3>
+            <form id="modify-task-form">
+                <label for="modify-task-name">Task Name:</label>
+                <input type="text" id="modify-task-name" name="task-name" required>
+                <label for="modify-task-description">Description:</label>
+                <textarea id="modify-task-description" name="task-description"></textarea>
+                <label for="modify-task-category">Category:</label>
+                <select id="modify-task-category" name="task-category">
+                    @foreach (var category in Model.Categories)
+                    {
+                        <option value="@category.Id">@category.Name</option>
+                    }
+                </select>
+                <button type="submit">Update</button>
+                <button type="button" id="modify-cancel-btn">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Creating a Project -->
+    <div id="create-project-modal" class="modal">
+        <div class="modal-content">
+            <h3>Create Project</h3>
+            <form id="create-project-form">
+                <label for="project-name">Project Name:</label>
+                <input type="text" id="project-name" name="project-name" required>
+                <label for="project-description">Description:</label>
+                <textarea id="project-description" name="project-description"></textarea>
+                <div id="tasks-container">
+                    <h4>Tasks:</h4>
+                    <div class="task-entry">
+                        <label>Task Name:</label>
+                        <input type="text" name="task-name" required>
+                        <label>Category:</label>
+                        <select name="task-category">
+                            <option value="1">Work</option>
+                            <option value="2">School</option>
+                        </select>
+                        <label>Deadline:</label>
+                        <input type="date" name="task-deadline" required>
+                    </div>
+                </div>
+                <button type="button" id="add-task-btn">Add Task</button>
+                <button type="submit">Submit</button>
+                <button type="button" id="cancel-project-btn">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const projectForm = document.getElementById("create-project-form");
+            const projectModal = document.getElementById("create-project-modal");
+            const addTaskBtn = document.getElementById("add-task-btn");
+            const cancelProjectBtn = document.getElementById("cancel-project-btn");
+            const tasksContainer = document.getElementById("tasks-container");
+
+            // Open project creation modal
+            document.getElementById("create-project-btn").addEventListener("click", () => {
+                projectForm.reset(); // Reset the form
+                tasksContainer.innerHTML = ""; // Clear previous tasks
+                projectModal.style.display = "block";
+            });
+
+            // Close project creation modal
+            cancelProjectBtn.addEventListener("click", () => {
+                projectModal.style.display = "none";
+            });
+
+            // Add a new task entry to the project
+            addTaskBtn.addEventListener("click", () => {
+                const taskDiv = document.createElement("div");
+                taskDiv.className = "task-entry";
+                taskDiv.innerHTML = `
+                    <label for="task-name">Task Name:</label>
+                    <input type="text" name="task-name" class="task-name" required>
+
+                    <label for="task-description">Task Description:</label>
+                    <textarea name="task-description" class="task-description" required></textarea>
+
+                    <label for="task-category">Category:</label>
+                    <select name="task-category" class="task-category">
+                        <option value="1">Home</option>
+                        <option value="2">Work</option>
+                        <option value="3">School</option>
+                    </select>
+
+                    <label for="task-deadline">Deadline:</label>
+                    <input type="date" name="task-deadline" class="task-deadline" required>
+
+                    <button type="button" class="remove-task-btn">Remove Task</button>
+                `;
+                tasksContainer.appendChild(taskDiv);
+
+                // Add event listener for the remove button
+                taskDiv.querySelector(".remove-task-btn").addEventListener("click", () => {
+                    tasksContainer.removeChild(taskDiv);
+                });
+            });
+
+            // Submit the project
+            projectForm.addEventListener("submit", async (event) => {
+                event.preventDefault();
+
+                const projectName = document.getElementById("project-name").value;
+                const projectDescription = document.getElementById("project-description").value;
+
+                const tasks = Array.from(document.querySelectorAll(".task-entry")).map((taskDiv) => ({
+                    name: taskDiv.querySelector(".task-name").value,
+                    description: taskDiv.querySelector(".task-description").value,
+                    categoryId: parseInt(taskDiv.querySelector(".task-category").value),
+                    deadline: taskDiv.querySelector(".task-deadline").value
+                }));
+
+                const projectData = {
+                    name: projectName,
+                    description: projectDescription,
+                    taskItems: tasks
+                };
+
+                try {
+                    const response = await fetch("/api/projects/create", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(projectData)
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+
+                        // Update the UI with the new project
+                        const projectColumn = document.querySelector(".project-column");
+                        const projectDiv = document.createElement("div");
+                        projectDiv.className = "project";
+                        projectDiv.setAttribute("draggable", "true");
+                        projectDiv.setAttribute("data-id", result.id);
+                        projectDiv.textContent = result.name;
+
+                        projectColumn.appendChild(projectDiv);
+
+                        alert(`Project "${result.name}" created successfully!`);
+                        projectForm.reset();
+                        tasksContainer.innerHTML = ""; // Clear the task list
+                        projectModal.style.display = "none";
+                    } else {
+                        const error = await response.text();
+                        alert(`Failed to create project: ${error}`);
+                    }
+                } catch (error) {
+                    console.error("Error creating project:", error);
+                    alert("An error occurred. Please try again.");
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>

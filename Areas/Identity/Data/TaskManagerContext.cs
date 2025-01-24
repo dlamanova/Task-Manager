@@ -80,23 +80,43 @@ namespace TaskManager.Data
                 }
             );
 
-            // Seed example tasks and projects
-            builder.Entity<TaskItem>().HasData(
-                new TaskItem { Id = 1, Name = "Task 1", AssignedUserId = "user-id", Description = "Smth" },
-                new TaskItem { Id = 2, Name = "Admin Task 1", AssignedUserId = "admin-id",
-                    Description = "Smth" }
-            );
-
+            // Seed categories
             builder.Entity<Category>().HasData(
                 new Category { Id = 1, Name = "Home" },
                 new Category { Id = 2, Name = "Work" },
                 new Category { Id = 3, Name = "School" }
             );
 
-            //builder.Entity<Project>().HasData(
-            //    new Project { Id = 1, Name = "Admin Project 1", OwnerId = "admin-id" }
-            //);
-        }
+            // Seed example statuses
+            builder.Entity<Status>().HasData(
+                new Status { Id = 1, Name = "TODO" },
+                new Status { Id = 2, Name = "In Progress" },
+                new Status { Id = 3, Name = "Done" }
+            );
 
+            // Seed example tasks with valid default values
+            builder.Entity<TaskItem>().HasData(
+                new TaskItem
+                {
+                    Id = 1,
+                    Name = "Task 1",
+                    AssignedUserId = "user-id",
+                    Description = "Sample task for a regular user",
+                    CategoryId = 1, // Assign to "Home" category
+                    Deadline = DateTime.Now.AddDays(7),
+                    StatusId = 1 // Default to "TODO" status
+                },
+                new TaskItem
+                {
+                    Id = 2,
+                    Name = "Admin Task 1",
+                    AssignedUserId = "admin-id",
+                    Description = "Sample task for an admin user",
+                    CategoryId = 2, // Assign to "Work" category
+                    Deadline = DateTime.Now.AddDays(10),
+                    StatusId = 1
+                }
+            );
+        }
     }
 }
