@@ -119,41 +119,22 @@
                         background-color: #e0e0e0;
                     }
 
-        /* Align Logout to Top Right */
-        #logout-button {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            color: #333;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-            #logout-button:hover {
-                text-decoration: underline;
-            }
-
-        .task-menu-button {
-            font-size: 1.2em;
-            color: #333;
-        }
-
-        .task-menu div {
+        .task-details {
+            margin-top: 10px;
+            padding: 5px;
+            border-top: 1px solid #ddd;
             font-size: 0.9em;
-            color: #333;
-            padding: 5px 10px;
-            cursor: pointer;
+            color: #555;
         }
 
-            .task-menu div:hover {
-                background-color: #f5f5f5;
-            }
+        .description-container {
+            max-height: 4.5em; /* Allow up to 3-4 lines of text */
+            overflow-y: auto; /* Enable scrolling if text overflows */
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
-    <!-- Align Logout Link -->
-    @* <a href="/Account/Logout" id="logout-button">Logout</a> *@
-
     <div class="task-board">
         <!-- TODO Column -->
         <div class="task-column" data-status="TODO">
@@ -200,7 +181,7 @@
                         <option value="@category.Id">@category.Name</option>
                     }
                 </select>
-                <button type="submit">Create</button>
+                <button type="submit">Submit</button>
                 <button type="button" id="cancel-btn">Cancel</button>
             </form>
         </div>
@@ -208,30 +189,236 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            const tasks = document.querySelectorAll(".task");
-            const columns = document.querySelectorAll(".task-column");
-            let draggedTask = null;
+            const modal = document.getElementById("create-task-modal");
+            const cancelBtn = document.getElementById("cancel-btn");
+            const createTaskForm = document.getElementById("create-task-form");
+            const createTaskBtn = document.getElementById("create-task-btn");
+            const taskIdField = document.createElement("input"); // Hidden field for task ID
+            taskIdField.type = "hidden";
+            taskIdField.id = "task-id";
+            createTaskForm.appendChild(taskIdField);
 
-            // Drag-and-Drop logic
-            tasks.forEach(task => {
-                task.addEventListener("dragstart", event => {
-                    draggedTask = task;
-                    event.dataTransfer.setData("text/plain", "");
-                });
-
-                task.addEventListener("dragend", () => {
-                    draggedTask = null;
-                });
+            // Show the modal for creating a new task
+            createTaskBtn.addEventListener("click", () => {
+                document.getElementById("task-id").value = ""; // Clear task ID
+                document.getElementById("task-name").value = "";
+                document.getElementById("task-description").value = "";
+                document.getElementById("task-category").value = "";
+                modal.style.display = "block";
             });
 
-                  tasks.forEach(task => {
+            // Hide the modal
+            cancelBtn.addEventListener("click", () => {
+                modal.style.display = "none";
+            });
+
+
+            //Submit
+            createTaskForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const taskId = document.getElementById("task-id").value;
+
+            // Fetch the chosen category ID
+            const selectedCategoryId = parseInt(document.getElementById("task-category").value);
+
+            // Prepare task data
+            const taskData = {
+                name: document.getElementById("task-name").value,
+                description: document.getElementById("task-description").value,
+                categoryId: selectedCategoryId || 1, // Default to "Home" if no category is selected
+            };
+
+            console.log("Task Data to Send:", taskData); // Log task data for debugging
+
+            const url = taskId
+                ? `/api/tasks/${taskId}` // Update existing task
+                : "/UserDashboard/CreateTask"; // Create a new task
+
+            const method = taskId ? "PUT" : "POST";
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(taskData),
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+
+                    if (taskId) {
+                        // Update the task in the UI
+                        const taskElement = document.querySelector(`.task[data-id='${taskId}']`);
+                        taskElement.textContent = taskData.name;
+
+                        // Reattach the menu button to the updated task
+                        addMenuButton(taskElement);
+                    } else {
+                        // Add a new task to the TODO column
+                        const todoColumn = document.querySelector('[data-status="TODO"]');
+                        const taskDiv = document.createElement("div");
+                        taskDiv.className = "task";
+                        taskDiv.setAttribute("draggable", "true");
+                        taskDiv.setAttribute("data-id", result.id);
+                        taskDiv.setAttribute("data-category", result.categoryId);
+                        taskDiv.textContent = result.name;
+
+                        todoColumn.appendChild(taskDiv);
+
+                        // Enable drag-and-drop and add menu button for the new task
+                        enableDragAndDrop(taskDiv);
+                        addMenuButton(taskDiv);
+                    }
+
+                    // Close the modal and reset the form
+                    modal.style.display = "none";
+                    createTaskForm.reset();
+                } else {
+                    console.error("Failed to save task.");
+                }
+            } catch (error) {
+                console.error("Error while saving task:", error);
+            }
+        });
+
+
+
+            // Function to enable drag-and-drop for a task
+            function enableDragAndDrop(taskElement) {
+                taskElement.addEventListener("dragstart", (event) => {
+                    event.dataTransfer.setData("text/plain", taskElement.dataset.id);
+                });
+
+                taskElement.addEventListener("dragend", () => {
+                    taskElement.style.opacity = "1";
+                });
+            }
+
+            // Function to add the menu button (three dots) and its functionality to a task
+            function addMenuButton(task) {
+                const existingMenuButton = task.querySelector(".task-menu-button");
+                if (existingMenuButton) return; // Prevent duplicate menu buttons
+
+                const menuButton = document.createElement("div");
+                menuButton.className = "task-menu-button";
+                menuButton.innerHTML = "&#x22EE;"; // Unicode for vertical ellipsis
+                menuButton.style.position = "absolute";
+                menuButton.style.top = "5px";
+                menuButton.style.right = "5px";
+                menuButton.style.cursor = "pointer";
+
+                const menu = document.createElement("div");
+                menu.className = "task-menu";
+                menu.style.position = "absolute";
+                menu.style.right = "5px";
+                menu.style.top = "25px";
+                menu.style.background = "#fff";
+                menu.style.border = "1px solid #ddd";
+                menu.style.boxShadow = "0 2px 6px rgba(0, 0, 0, 0.2)";
+                menu.style.borderRadius = "5px";
+                menu.style.display = "none";
+                menu.style.zIndex = "1000";
+
+                const modifyOption = document.createElement("div");
+                modifyOption.innerText = "Modify";
+                modifyOption.style.padding = "5px 10px";
+                modifyOption.style.cursor = "pointer";
+                modifyOption.style.borderBottom = "1px solid #ddd";
+
+                const deleteOption = document.createElement("div");
+                deleteOption.innerText = "Delete";
+                deleteOption.style.padding = "5px 10px";
+                deleteOption.style.cursor = "pointer";
+
+                menu.appendChild(modifyOption);
+                menu.appendChild(deleteOption);
+
+                task.style.position = "relative";
+                task.appendChild(menuButton);
+                task.appendChild(menu);
+
+                menuButton.addEventListener("click", () => {
+                    menu.style.display = menu.style.display === "none" ? "block" : "none";
+                });
+
+                document.addEventListener("click", (event) => {
+                    if (!menu.contains(event.target) && event.target !== menuButton) {
+                        menu.style.display = "none";
+                    }
+                });
+
+                modifyOption.addEventListener("click", async () => {
+                const taskId = task.getAttribute("data-id");
+
+                try {
+                    const response = await fetch(`/api/tasks/${taskId}`);
+                    if (response.ok) {
+                        const taskDetails = await response.json();
+
+                        // Populate the form with task details
+                        document.getElementById("task-id").value = taskDetails.id;
+                        document.getElementById("task-name").value = taskDetails.name;
+                        document.getElementById("task-description").value = taskDetails.description;
+
+                        // Set the current category as the default selected option
+                        const categorySelect = document.getElementById("task-category");
+                        Array.from(categorySelect.options).forEach((option) => {
+                            if (parseInt(option.value) === taskDetails.categoryId) {
+                                option.selected = true;
+                            }
+                        });
+
+                        modal.style.display = "block";
+                    } else {
+                        console.error("Failed to fetch task details.");
+                    }
+                } catch (error) {
+                    console.error("Error fetching task details:", error);
+                }
+            });
+
+            deleteOption.addEventListener("click", async () => {
+            const taskId = task.getAttribute("data-id");
+
+            try {
+                const response = await fetch(`/api/tasks/${taskId}`, {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+
+                if (response.ok) {
+                    task.remove(); // Remove the task from the UI
+                    console.log(`Task ${taskId} deleted successfully.`);
+                } else {
+                    console.error("Failed to delete task.");
+                }
+            } catch (error) {
+                console.error("Error deleting task:", error);
+            }
+        });
+
+            }
+
+            // Add menu buttons to existing tasks
+            const tasks = document.querySelectorAll(".task");
+            tasks.forEach((task) => {
+                enableDragAndDrop(task);
+                addMenuButton(task);
+            });
+
+            tasks.forEach(task => {
             task.addEventListener("dblclick", async () => {
                 const taskId = task.getAttribute("data-id");
 
                 // Check if details are already expanded
                 const expandedDetails = task.querySelector(".task-details");
                 if (expandedDetails) {
-                    // If details exist, remove them (collapse)
+                    // Collapse the expanded details
                     task.removeChild(expandedDetails);
                     return;
                 }
@@ -248,13 +435,13 @@
                         detailsDiv.style.marginTop = "10px";
                         detailsDiv.style.padding = "5px";
                         detailsDiv.style.borderTop = "1px solid #ddd";
-                        detailsDiv.style.fontSize = "0.9em";
-                        detailsDiv.style.color = "#555";
 
-                        // Add task description and category
+                        // Add category and description
                         detailsDiv.innerHTML = `
-                            <strong>Description:</strong> ${taskDetails.description || "No description"}<br>
-                            <strong>Category:</strong> ${taskDetails.category || "No category"}
+                            <div><strong>Category:</strong> ${taskDetails.category || "No category"}</div>
+                            <div class="description-container" style="max-height: 4.5em; overflow-y: auto; margin-top: 5px;">
+                                <strong>Description:</strong> ${taskDetails.description || "No description"}
+                            </div>
                         `;
 
                         // Append the details to the task
@@ -267,265 +454,45 @@
                 }
             });
         });
-                tasks.forEach(task => {
-            // Add menu button to each task
-            const menuButton = document.createElement("div");
-            menuButton.className = "task-menu-button";
-            menuButton.innerHTML = "&#x22EE;"; // Unicode for vertical ellipsis
-            menuButton.style.position = "absolute";
-            menuButton.style.top = "5px";
-            menuButton.style.right = "5px";
-            menuButton.style.cursor = "pointer";
-
-            // Create the options menu
-            const menu = document.createElement("div");
-            menu.className = "task-menu";
-            menu.style.position = "absolute";
-            menu.style.right = "5px";
-            menu.style.top = "25px";
-            menu.style.background = "#fff";
-            menu.style.border = "1px solid #ddd";
-            menu.style.boxShadow = "0 2px 6px rgba(0, 0, 0, 0.2)";
-            menu.style.borderRadius = "5px";
-            menu.style.display = "none";
-            menu.style.zIndex = "1000";
-
-            // Add options to the menu
-            const modifyOption = document.createElement("div");
-            modifyOption.innerText = "Modify";
-            modifyOption.style.padding = "5px 10px";
-            modifyOption.style.cursor = "pointer";
-            modifyOption.style.borderBottom = "1px solid #ddd";
-
-            const deleteOption = document.createElement("div");
-            deleteOption.innerText = "Delete";
-            deleteOption.style.padding = "5px 10px";
-            deleteOption.style.cursor = "pointer";
-
-            menu.appendChild(modifyOption);
-            menu.appendChild(deleteOption);
-
-            // Append menu button and menu to the task
-            task.style.position = "relative";
-            task.appendChild(menuButton);
-            task.appendChild(menu);
-
-            // Show/hide menu
-            menuButton.addEventListener("click", () => {
-                menu.style.display = menu.style.display === "none" ? "block" : "none";
-            });
-
-            // Hide menu on clicking outside
-            document.addEventListener("click", (event) => {
-                if (!menu.contains(event.target) && event.target !== menuButton) {
-                    menu.style.display = "none";
-                }
-            });
-
-            // Modify option logic
-            modifyOption.addEventListener("click", async () => {
-                const taskId = task.getAttribute("data-id");
-
-                // Fetch task details
-                try {
-                    const response = await fetch(`/api/tasks/${taskId}`);
-                    if (response.ok) {
-                        const taskDetails = await response.json();
-
-                        // Open modal and populate fields
-                        document.getElementById("task-name").value = taskDetails.name;
-                        document.getElementById("task-description").value = taskDetails.description;
-                        document.getElementById("task-category").value = taskDetails.categoryId;
-
-                        const modal = document.getElementById("create-task-modal");
-                        modal.style.display = "block";
-
-                        // Update form submission for modification
-                        const createTaskForm = document.getElementById("create-task-form");
-                        createTaskForm.onsubmit = async (event) => {
-                            event.preventDefault();
-
-                            try {
-                                const response = await fetch(`/api/tasks/${taskId}`, {
-                                    method: "PUT",
-                                    headers: {
-                                        "Content-Type": "application/json",
-                                    },
-                                    body: JSON.stringify({
-                                        name: document.getElementById("task-name").value,
-                                        description: document.getElementById("task-description").value,
-                                        categoryId: parseInt(document.getElementById("task-category").value),
-                                    }),
-                                });
-
-                                if (response.ok) {
-                                    // Update task display
-                                    task.querySelector(".task-details")?.remove();
-                                    task.textContent = document.getElementById("task-name").value;
-
-                                    task.appendChild(menuButton);
-                                    task.appendChild(menu);
-                                    modal.style.display = "none";
-                                }
-                            } catch (error) {
-                                console.error("Error updating task:", error);
-                            }
-                        };
-                    }
-                } catch (error) {
-                    console.error("Error fetching task details for modification:", error);
-                }
-            });
-
-            // Delete option logic
-            deleteOption.addEventListener("click", async () => {
-                const taskId = task.getAttribute("data-id");
-
-                try {
-                    const response = await fetch(`/api/tasks/${taskId}`, {
-                        method: "DELETE",
-                    });
-
-                    if (response.ok) {
-                        // Remove task from the UI
-                        task.remove();
-                    } else {
-                        console.error("Failed to delete task.");
-                    }
-                } catch (error) {
-                    console.error("Error deleting task:", error);
-                }
-            });
-        });
 
 
-
-            columns.forEach(column => {
-                column.addEventListener("dragover", event => {
+            // Drag-and-drop logic for existing tasks
+            const columns = document.querySelectorAll(".task-column");
+            columns.forEach((column) => {
+                column.addEventListener("dragover", (event) => {
                     event.preventDefault();
                 });
 
-                column.addEventListener("drop", event => {
+                column.addEventListener("drop", async (event) => {
                     event.preventDefault();
+                    const taskId = event.dataTransfer.getData("text/plain");
+                    const draggedTask = document.querySelector(`.task[data-id='${taskId}']`);
+                    const statusColumn = column.getAttribute("data-status");
+
                     if (draggedTask) {
-                        const oldParent = draggedTask.parentNode;
-                        oldParent.removeChild(draggedTask);
                         column.appendChild(draggedTask);
 
-                        const statusColumn = column.getAttribute("data-status");
-                        const taskId = draggedTask.getAttribute("data-id");
-
-                        // Update the task's status in memory for saving later
-                        draggedTask.dataset.status = statusColumn;
-
-                        console.log(`Task ${taskId} moved to ${statusColumn}.`);
+                        try {
+                            await fetch("/UserDashboard/UpdateTaskStatuses", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify([
+                                    {
+                                        id: parseInt(taskId),
+                                        statusId: mapStatusToId(statusColumn),
+                                    },
+                                ]),
+                            });
+                            console.log(`Task ${taskId} moved to ${statusColumn}.`);
+                        } catch (error) {
+                            console.error("Error updating task status:", error);
+                        }
                     }
                 });
             });
 
-            // Save Task Statuses
-            async function saveTaskStatuses() {
-                const tasksToUpdate = [];
-                document.querySelectorAll(".task").forEach(task => {
-                    const taskId = task.getAttribute("data-id");
-                    const status = task.dataset.status || task.parentNode.getAttribute("data-status");
-
-                    tasksToUpdate.push({
-                        id: parseInt(taskId),
-                        statusId: mapStatusToId(status),
-                    });
-                });
-
-                try {
-                    await fetch("/api/tasks/update-statuses", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify(tasksToUpdate),
-                    });
-                    console.log("Task statuses saved successfully.");
-                } catch (error) {
-                    console.error("Error saving task statuses:", error);
-                }
-            }
-
-            // Logout Button Handling
-            const logoutButton = document.getElementById("logout-button");
-            if (logoutButton) {
-                logoutButton.addEventListener("click", async (event) => {
-                    event.preventDefault(); // Prevent default logout behavior
-                    await saveTaskStatuses(); // Save tasks before logging out
-                    window.location.href = logoutButton.href; // Redirect to logout
-                });
-            }
-
-            // Create Task Modal Logic
-            const createTaskBtn = document.getElementById("create-task-btn");
-            const modal = document.getElementById("create-task-modal");
-            const cancelBtn = document.getElementById("cancel-btn");
-            const createTaskForm = document.getElementById("create-task-form");
-
-            createTaskBtn.addEventListener("click", () => {
-                modal.style.display = "block";
-            });
-
-            cancelBtn.addEventListener("click", () => {
-                modal.style.display = "none";
-            });
-
-            createTaskForm.addEventListener("submit", async (event) => {
-                event.preventDefault();
-
-                const taskName = document.getElementById("task-name").value;
-                const taskDescription = document.getElementById("task-description").value;
-                const taskCategory = document.getElementById("task-category").value;
-
-                try {
-                    const response = await fetch("/api/tasks/create", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({
-                            name: taskName,
-                            description: taskDescription,
-                            categoryId: parseInt(taskCategory),
-                            statusId: 1,
-                        }),
-                    });
-
-                    if (response.ok) {
-                        const newTask = await response.json();
-                        const todoColumn = document.querySelector('[data-status="TODO"]');
-
-                        const taskDiv = document.createElement("div");
-                        taskDiv.className = "task";
-                        taskDiv.setAttribute("draggable", "true");
-                        taskDiv.setAttribute("data-id", newTask.id);
-                        taskDiv.setAttribute("data-category", newTask.categoryId);
-                        taskDiv.textContent = newTask.name;
-
-                        todoColumn.appendChild(taskDiv);
-
-                        taskDiv.addEventListener("dragstart", event => {
-                            draggedTask = taskDiv;
-                            event.dataTransfer.setData("text/plain", "");
-                        });
-
-                        taskDiv.addEventListener("dragend", () => {
-                            draggedTask = null;
-                        });
-
-                        modal.style.display = "none";
-                        createTaskForm.reset();
-                    }
-                } catch (error) {
-                    console.error("Error creating task:", error);
-                }
-            });
-
-            // Map column names to status IDs
             function mapStatusToId(status) {
                 switch (status) {
                     case "TODO":
@@ -538,8 +505,6 @@
                         return 1;
                 }
             }
-
-            // Save on Page Unload
             window.addEventListener("beforeunload", saveTaskStatuses);
         });
     </script>
