@@ -34,7 +34,7 @@ Follow these steps to install and run the Task Manager project:
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/your-repository/task-manager.git
+   git clone https://github.com/dlamanova/task-manager.git
    cd task-manager
    ```
 
@@ -108,7 +108,7 @@ Follow these steps to install and run the Task Manager project:
 
 2. **Clone the Fork**:
    ```bash
-   git clone https://github.com/your-username/task-manager.git
+   git clone https://github.com/dlamanova/task-manager.git
    ```
 
 3. **Create a Branch**:
@@ -130,17 +130,4 @@ Follow these steps to install and run the Task Manager project:
 6. **Create a Pull Request**:
    - Open a pull request from your fork's branch to the main repository.
 
----
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
-
----
-
-## Contact
-
-For any queries, please contact:
-- **Email**: support@taskmanager.com
-- **GitHub Issues**: [Issue Tracker](https://github.com/your-repository/task-manager/issues)
 
